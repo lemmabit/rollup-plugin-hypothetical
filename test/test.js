@@ -49,6 +49,16 @@ it("should be able to simulate an entry file", function() {
   }), { key: false });
 });
 
+it("should be able to simulate an imported file", function() {
+  return resolve(rollup.rollup({
+    entry: './x.js',
+    plugins: [hypothetical({ files: {
+      './x.js': 'import \'./y.js\'; object.key = false;',
+      './y.js': 'object.key2 = 5;'
+    } })]
+  }), { key: false, key2: 5 });
+});
+
 it("should be able to simulate an entry file where one already exists", function() {
   return resolve(rollup.rollup({
     entry: './test/fixtures/a.js',
@@ -67,5 +77,47 @@ it("should handle absolute paths", function() {
   return resolve(rollup.rollup({
     entry: '/x.js',
     plugins: [hypothetical({ files: { '/x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should handle backslash-separated paths", function() {
+  return resolve(rollup.rollup({
+    entry: 'dir\\x.js',
+    plugins: [hypothetical({ files: { 'dir\\x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should handle mixed slash style paths", function() {
+  return resolve(rollup.rollup({
+    entry: 'dir\\this-is-horrible/x.js',
+    plugins: [hypothetical({ files: { 'dir\\this-is-horrible/x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should convert between slash styles", function() {
+  return resolve(rollup.rollup({
+    entry: 'dir\\x.js',
+    plugins: [hypothetical({ files: { 'dir/x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should handle DOS drive names", function() {
+  return resolve(rollup.rollup({
+    entry: 'C:\\x.js',
+    plugins: [hypothetical({ files: { 'C:\\x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should normalize supplied file paths", function() {
+  return resolve(rollup.rollup({
+    entry: 'x.js',
+    plugins: [hypothetical({ files: { './dir/../x.js': 'object.key = false;' } })]
+  }), { key: false });
+});
+
+it("should normalize module file paths", function() {
+  return resolve(rollup.rollup({
+    entry: './dir/../x.js',
+    plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
   }), { key: false });
 });
