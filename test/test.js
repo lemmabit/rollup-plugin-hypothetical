@@ -84,7 +84,7 @@ it("shouldn't import external modules from wonderland", function() {
       './x.js': 'import \'y.js\'; object.key = false;',
       './y.js': 'object.key2 = 5;'
     } })]
-  }), { key: false, key2: 5 }), "nexpected token");
+  }), { key: false, key2: 5 }));
 });
 
 it("should forbid external modules when options.allowExternalModules is false", function() {
