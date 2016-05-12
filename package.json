@@ -22,8 +22,5 @@
   "devDependencies": {
     "mocha": "^2.4.5",
     "rollup": "^0.26.2"
-  },
-  "dependencies": {
-    "path": "^0.12.7"
   }
 }
