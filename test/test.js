@@ -87,6 +87,40 @@ it("shouldn't import external modules from wonderland", function() {
   }), { key: false, key2: 5 }), "nexpected token");
 });
 
+it("should forbid external modules when options.allowExternalModules is false", function() {
+  return reject(rollup.rollup({
+    entry: './x.js',
+    plugins: [hypothetical({ files: {
+      './x.js': 'import \'y.js\'; object.key = false;'
+    }, allowExternalModules: false })]
+  }), "xternal module");
+});
+
+it("should allow importing of real files when options.allowRealFiles is true", function() {
+  return resolve(rollup.rollup({
+    entry: './test/fixtures/x.js',
+    plugins: [hypothetical({ files: {
+      './test/fixtures/x.js': 'import \'./a.js\'; object.key2 = -3;'
+    }, allowRealFiles: true })]
+  }), { key: true, key2: -3 });
+});
+
+it("should allow entry to be a real file when options.allowRealFiles is true", function() {
+  return resolve(rollup.rollup({
+    entry: './test/fixtures/b.js',
+    plugins: [hypothetical({ files: {
+      './test/fixtures/a.js': 'object.key = false;'
+    }, allowRealFiles: true })]
+  }), { key: false, key2: 0 });
+});
+
+it("should allow every file to be real when options.allowRealFiles is true", function() {
+  return resolve(rollup.rollup({
+    entry: './test/fixtures/b.js',
+    plugins: [hypothetical({ allowRealFiles: true })]
+  }), { key: true, key2: 0 });
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
