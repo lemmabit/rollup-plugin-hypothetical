@@ -1,4 +1,4 @@
-var path = require('path').posix;
+var path = require('./node_modules/path').posix;
 
 function isAbsolute(p) {
   return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
