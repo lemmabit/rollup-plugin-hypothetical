@@ -121,6 +121,16 @@ it("should allow every file to be real when options.allowRealFiles is true", fun
   }), { key: true, key2: 0 });
 });
 
+it("should bypass this insufferable garbage when options.leaveIdsAlone is true", function() {
+  return resolve(rollup.rollup({
+    entry: 'slash/something',
+    plugins: [hypothetical({ files: {
+      'slash/something': 'import \'so free\'; object.key = \'woo\';',
+      'so free': 'object.key2 = 1000'
+    }, leaveIdsAlone: true })]
+  }), { key: 'woo', key2: 1000 });
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
