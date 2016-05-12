@@ -1,5 +1,9 @@
 var path = require('path').posix;
 
+function isAbsolute(p) {
+  return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
+}
+
 module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
   var files0 = options.files || {};
@@ -15,7 +19,11 @@ module.exports = function rollupPluginHypothetical(options) {
   } else {
     files = {};
     for(var f in files0) {
-      files['./' + path.normalize(unixStylePath(f))] = files0[f];
+      var p = path.normalize(unixStylePath(f));
+      if(!isAbsolute(p)) {
+        p = './' + p;
+      }
+      files[p] = files0[f];
     }
   }
   
@@ -30,20 +38,20 @@ module.exports = function rollupPluginHypothetical(options) {
   return {
     resolveId: options.leaveIdsAlone ? basicResolve : function(importee, importer) {
       importee = unixStylePath(importee);
-      if(importer && !/^\.?\.?\//.test(importee)) {
+      if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
         if(allowExternalModules) {
           return;
         } else {
           throw Error("External module \""+importee+"\" is not allowed!");
         }
       }
-      var isAbsolute = path.isAbsolute(importee);
-      if(!isAbsolute && importer) {
+      var abs = isAbsolute(importee);
+      if(!abs && importer) {
         importee = path.join(path.dirname(importer), importee);
       } else {
         importee = path.normalize(importee);
       }
-      if(!isAbsolute) {
+      if(!abs) {
         importee = './' + importee;
       }
       return basicResolve(importee);
