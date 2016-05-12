@@ -1,4 +1,4 @@
-# rollup-plugin-hypothetical [![Dependency Status][david-image]][david-url]
+# rollup-plugin-hypothetical [![Dependency Status][david-image]][david-url] [![Build Status][travis-image]][travis-url]
 This allows TODO.
 
 ## Installation
@@ -30,5 +30,7 @@ MIT
 
 [david-url]:   https://david-dm.org/Permutatrix/rollup-plugin-hypothetical
 [david-image]: https://img.shields.io/david/Permutatrix/rollup-plugin-hypothetical/master.svg
+[travis-url]: https://travis-ci.org/Permutatrix/rollup-plugin-hypothetical
+[travis-image]: https://img.shields.io/travis/Permutatrix/rollup-plugin-hypothetical/master.svg
 
 [Rollup]:    https://www.npmjs.com/package/rollup
