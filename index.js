@@ -4,6 +4,14 @@ function isAbsolute(p) {
   return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
 }
 
+function absolutify(p) {
+  if(process) {
+    return path.join(unixStylePath(process.cwd()), p);
+  } else {
+    return './' + p;
+  }
+}
+
 module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
   var files0 = options.files || {};
@@ -21,7 +29,7 @@ module.exports = function rollupPluginHypothetical(options) {
     for(var f in files0) {
       var p = path.normalize(unixStylePath(f));
       if(!isAbsolute(p)) {
-        p = './' + p;
+        p = absolutify(p);
       }
       files[p] = files0[f];
     }
@@ -45,14 +53,13 @@ module.exports = function rollupPluginHypothetical(options) {
           throw Error("External module \""+importee+"\" is not allowed!");
         }
       }
-      var abs = isAbsolute(importee);
-      if(!abs && importer) {
+      if(!isAbsolute(importee) && importer) {
         importee = path.join(path.dirname(importer), importee);
       } else {
         importee = path.normalize(importee);
       }
-      if(!abs) {
-        importee = './' + importee;
+      if(!isAbsolute(importee)) {
+        importee = absolutify(importee);
       }
       return basicResolve(importee);
     },
