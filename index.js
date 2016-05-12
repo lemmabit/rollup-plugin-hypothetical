@@ -30,7 +30,7 @@ module.exports = function rollupPluginHypothetical(options) {
   return {
     resolveId: options.leaveIdsAlone ? basicResolve : function(importee, importer) {
       importee = unixStylePath(importee);
-      if(!/^\.?\.?\//.test(importee)) {
+      if(importer && !/^\.?\.?\//.test(importee)) {
         if(allowExternalModules) {
           return;
         } else {
