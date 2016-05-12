@@ -66,58 +66,60 @@ it("should be able to simulate an entry file where one already exists", function
   }), { key: false });
 });
 
-it("should handle an entry point that appears to be external", function() {
-  return resolve(rollup.rollup({
-    entry: 'x.js',
-    plugins: [hypothetical({ files: { './x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should handle absolute paths", function() {
-  return resolve(rollup.rollup({
-    entry: '/x.js',
-    plugins: [hypothetical({ files: { '/x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should handle backslash-separated paths", function() {
-  return resolve(rollup.rollup({
-    entry: 'dir\\x.js',
-    plugins: [hypothetical({ files: { 'dir\\x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should handle mixed slash style paths", function() {
-  return resolve(rollup.rollup({
-    entry: 'dir\\this-is-horrible/x.js',
-    plugins: [hypothetical({ files: { 'dir\\this-is-horrible/x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should convert between slash styles", function() {
-  return resolve(rollup.rollup({
-    entry: 'dir\\x.js',
-    plugins: [hypothetical({ files: { 'dir/x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should handle DOS drive names", function() {
-  return resolve(rollup.rollup({
-    entry: 'C:\\x.js',
-    plugins: [hypothetical({ files: { 'C:\\x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should normalize supplied file paths", function() {
-  return resolve(rollup.rollup({
-    entry: 'x.js',
-    plugins: [hypothetical({ files: { './dir/../x.js': 'object.key = false;' } })]
-  }), { key: false });
-});
-
-it("should normalize module file paths", function() {
-  return resolve(rollup.rollup({
-    entry: './dir/../x.js',
-    plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
-  }), { key: false });
+describe("Paths", function() {
+  it("should handle an entry point that appears to be external", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: { './x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should handle absolute paths", function() {
+    return resolve(rollup.rollup({
+      entry: '/x.js',
+      plugins: [hypothetical({ files: { '/x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should handle backslash-separated paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'dir\\x.js',
+      plugins: [hypothetical({ files: { 'dir\\x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should handle mixed slash style paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'dir\\this-is-horrible/x.js',
+      plugins: [hypothetical({ files: { 'dir\\this-is-horrible/x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should convert between slash styles", function() {
+    return resolve(rollup.rollup({
+      entry: 'dir\\x.js',
+      plugins: [hypothetical({ files: { 'dir/x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should handle DOS drive names", function() {
+    return resolve(rollup.rollup({
+      entry: 'C:\\x.js',
+      plugins: [hypothetical({ files: { 'C:\\x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should normalize supplied file paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: { './dir/../x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
+  
+  it("should normalize module file paths", function() {
+    return resolve(rollup.rollup({
+      entry: './dir/../x.js',
+      plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
+    }), { key: false });
+  });
 });
