@@ -66,6 +66,27 @@ it("should be able to simulate an entry file where one already exists", function
   }), { key: false });
 });
 
+it("should import files relative to the importer", function() {
+  return resolve(rollup.rollup({
+    entry: './dir/x.js',
+    plugins: [hypothetical({ files: {
+      './dir/x.js': 'import \'./y.js\'; object.key = false;',
+      './dir/y.js': 'object.key2 = 5;'
+    } })]
+  }), { key: false, key2: 5 });
+});
+
+it("shouldn't import external modules from wonderland", function() {
+  return reject(resolve(rollup.rollup({
+    entry: './x.js',
+    external: ['y.js'],
+    plugins: [hypothetical({ files: {
+      './x.js': 'import \'y.js\'; object.key = false;',
+      './y.js': 'object.key2 = 5;'
+    } })]
+  }), { key: false, key2: 5 }), "nexpected token");
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
