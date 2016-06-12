@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "gives Rollup an imaginary file system, e.g. for testing other plugins",
   "main": "index.js",
+  "engines": {
+    "node": ">=0.12"
+  },
   "scripts": {
     "test": "mocha"
   },
