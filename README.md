@@ -20,14 +20,14 @@ export default {
       './dir/a.js': `
         import foo from './b.js';
         foo();
-      `;
+      `,
       './dir/b.js': `
         export default function foo() {
           console.log("Hello, world!");
         }
-      `;
+      `
     }
-  })];
+  })]
 };
 ```
 
