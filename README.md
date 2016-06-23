@@ -1,5 +1,5 @@
 # rollup-plugin-hypothetical [![npm][npm-image]][npm-url] [![Dependency Status][david-image]][david-url] [![Build Status][travis-image]][travis-url]
-This allows [Rollup] modules to import hypothetical files passed in as options to the plugin. It's intended to make it easier to write tests for other Rollup plugins.
+This allows [Rollup] modules to import hypothetical files passed in as options to the plugin.
 
 ## Installation
 ```bash
@@ -29,6 +29,8 @@ export default {
 };
 ```
 
+## Sourcemaps
+To attach a sourcemap to a hypothetical file, simply pass in a `{ code, map }` object instead of a string. The sourcemap can have its own `sources`, `sourcesContent`, etc.
 
 ## Options
 ### options.files
