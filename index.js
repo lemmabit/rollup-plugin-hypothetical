@@ -20,6 +20,10 @@ module.exports = function rollupPluginHypothetical(options) {
   if(allowExternalModules === undefined) {
     allowExternalModules = true;
   }
+  var addJsExtensionIfNecessary = options.addJsExtensionIfNecessary;
+  if(addJsExtensionIfNecessary === undefined) {
+    addJsExtensionIfNecessary = true;
+  }
   
   var files;
   if(options.leaveIdsAlone) {
@@ -38,6 +42,8 @@ module.exports = function rollupPluginHypothetical(options) {
   function basicResolve(importee) {
     if(importee in files) {
       return importee;
+    } else if(addJsExtensionIfNecessary && importee + '.js' in files) {
+      return importee + '.js';
     } else if(!allowRealFiles) {
       throw dneError(importee);
     }
