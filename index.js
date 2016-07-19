@@ -5,7 +5,7 @@ function isAbsolute(p) {
 }
 
 function absolutify(p) {
-  if(process) {
+  if(typeof process !== 'undefined') {
     return path.join(unixStylePath(process.cwd()), p);
   } else {
     return './' + p;
