@@ -187,4 +187,44 @@ describe("Paths", function() {
       plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
     }), { key: false });
   });
+  
+  it("should add a .js extension if necessary by default", function() {
+    return resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'./y\'; object.key = false;',
+        './y.js': 'object.key2 = 5;'
+      } })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should add any extensions passed into options.impliedExtensions", function() {
+    return resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x.lol': 'import \'./y\'; object.key = false;',
+        './y.ha': 'object.key2 = 5;'
+      }, impliedExtensions: ['.lol', '.ha'] })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("shouldn't add .js if it isn't in options.impliedExtensions", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x.lol': 'import \'./y\'; object.key = false;',
+        './y.js': 'object.key2 = 5;'
+      }, impliedExtensions: ['.lol'] })]
+    })), "does not exist in the hypothetical file system");
+  });
+  
+  it("shouldn't add any extensions if options.impliedExtensions is false", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'./y\'; object.key = false;',
+        './y.js': 'object.key2 = 5;'
+      }, impliedExtensions: false })]
+    })), "does not exist in the hypothetical file system");
+  });
 });
