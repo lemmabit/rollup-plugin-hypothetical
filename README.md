@@ -45,6 +45,9 @@ Set this to `false` to forbid importing of external modules.
 ### options.leaveIdsAlone
 When this is set to `true`, the IDs in `import` statements won't be treated as paths and will instead be looked up directly in the `files` object. There will be no relative importing, path normalization, or restrictions on the contents of IDs.
 
+### options.impliedExtensions
+Set this to an array of file extensions to try appending to imports if an exact match isn't found. Defaults to `['.js']`. If this is set to `false` or an empty array, file extensions in imports will be treated as mandatory.
+
 
 ## License
 MIT
