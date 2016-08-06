@@ -94,7 +94,8 @@ module.exports = function rollupPluginHypothetical(options) {
       if(id in files) {
         return files[id];
       } else {
-        return files[resolveId(id)];
+        id = resolveId(id);
+        return id && files[id];
       }
     }
   };
