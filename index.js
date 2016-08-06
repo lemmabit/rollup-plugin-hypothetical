@@ -20,13 +20,14 @@ module.exports = function rollupPluginHypothetical(options) {
   if(allowExternalModules === undefined) {
     allowExternalModules = true;
   }
+  var leaveIdsAlone = options.leaveIdsAlone || false;
   var impliedExtensions = options.impliedExtensions;
   if(impliedExtensions === undefined) {
     impliedExtensions = ['.js'];
   }
   
   var files;
-  if(options.leaveIdsAlone) {
+  if(leaveIdsAlone) {
     files = files0;
   } else {
     files = {};
@@ -56,7 +57,7 @@ module.exports = function rollupPluginHypothetical(options) {
   }
   
   return {
-    resolveId: options.leaveIdsAlone ? basicResolve : function(importee, importer) {
+    resolveId: leaveIdsAlone ? basicResolve : function(importee, importer) {
       importee = unixStylePath(importee);
       if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
         if(allowExternalModules) {
@@ -76,12 +77,13 @@ module.exports = function rollupPluginHypothetical(options) {
       return basicResolve(importee);
     },
     load: function(id) {
-      var normalizedId = unixStylePath(id);
-      
-      if(normalizedId in files) {
-        return files[normalizedId];
+      if(!leaveIdsAlone) {
+        id = unixStylePath(id);
+      }
+      if(id in files) {
+        return files[id];
       } else if(!allowRealFiles) {
-        throw dneError(normalizedId);
+        throw dneError(id);
       }
     }
   };
