@@ -48,6 +48,9 @@ When this is set to `true`, the IDs in `import` statements won't be treated as p
 ### options.impliedExtensions
 Set this to an array of file extensions to try appending to imports if an exact match isn't found. Defaults to `['.js']`. If this is set to `false` or an empty array, file extensions in imports will be treated as mandatory.
 
+### options.cwd
+When this is set to a directory name, relative file paths will be resolved relative to that directory rather than `process.cwd()`. When it's set to `false`, they will be resolved relative to an imaginary directory that cannot be expressed as an absolute path.
+
 
 ## License
 MIT
