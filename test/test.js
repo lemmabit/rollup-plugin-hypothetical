@@ -167,6 +167,20 @@ describe("Paths", function() {
     }), { key: false });
   });
   
+  it("should handle backslashes when another plugin resolves the ID", function() {
+    return resolve(rollup.rollup({
+      entry: 'C:\\dir\\x.js',
+      plugins: [
+        {
+          resolveId: function(importee) {
+            return importee.split('/').join('\\');
+          }
+        },
+        hypothetical({ files: { 'C:/dir/x.js': 'object.key = false;' } })
+      ]
+    }), { key: false });
+  });
+  
   it("should handle DOS drive names", function() {
     return resolve(rollup.rollup({
       entry: 'C:\\x.js',
