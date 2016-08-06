@@ -179,6 +179,31 @@ it("should do so even when another module resolves the ID", function() {
   }), "\"\\slash\\something\" does not exist in the hypothetical file system");
 });
 
+it("shouldn't add file extensions when leaving IDs alone", function() {
+  return reject(rollup.rollup({
+    entry: 'x',
+    plugins: [hypothetical({ files: {
+      'x.js': 'object.key = false;',
+    }, leaveIdsAlone: true })]
+  }), "\"x\" does not exist in the hypothetical file system");
+});
+
+it("should re-resolve paths from other plugins", function() {
+  return resolve(rollup.rollup({
+    entry: 'not used',
+    plugins: [
+      {
+        resolveId: function(importee) {
+          return '/dir/../x';
+        }
+      },
+      hypothetical({ files: {
+        '/x.js': 'object.key = false;',
+      } })
+    ]
+  }), { key: false });
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
