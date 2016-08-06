@@ -76,10 +76,12 @@ module.exports = function rollupPluginHypothetical(options) {
       return basicResolve(importee);
     },
     load: function(id) {
-      if(id in files) {
-        return files[id];
+      var normalizedId = unixStylePath(id);
+      
+      if(normalizedId in files) {
+        return files[normalizedId];
       } else if(!allowRealFiles) {
-        throw dneError(id);
+        throw dneError(normalizedId);
       }
     }
   };
