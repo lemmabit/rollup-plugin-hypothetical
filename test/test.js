@@ -131,6 +131,34 @@ it("should bypass this insufferable garbage when options.leaveIdsAlone is true",
   }), { key: 'woo', key2: 1000 });
 });
 
+it("should distinguish between / and \\ when leaving IDs alone", function() {
+  // Rollup "normalizes" entry paths, so those are a lost cause. :(
+  return reject(rollup.rollup({
+    entry: 'x',
+    plugins: [hypothetical({ files: {
+      'x': 'import \'\\\\slash\\\\something\'; object.key = false;',
+      '/slash/something': 'object.key2 = 5'
+    }, leaveIdsAlone: true })]
+  }), "\"\\slash\\something\" does not exist in the hypothetical file system");
+});
+
+it("should do so even when another module resolves the ID", function() {
+  return reject(rollup.rollup({
+    entry: 'x',
+    plugins: [
+      {
+        resolveId: function(importee) {
+          return importee.split('/').join('\\');
+        }
+      },
+      hypothetical({ files: {
+        'x': 'import \'/slash/something\'; object.key = false;',
+        '/slash/something': 'object.key2 = 5'
+      }, leaveIdsAlone: true })
+    ]
+  }), "\"\\slash\\something\" does not exist in the hypothetical file system");
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
