@@ -4,9 +4,9 @@ function isAbsolute(p) {
   return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
 }
 
-function absolutify(p) {
-  if(typeof process !== 'undefined') {
-    return path.join(unixStylePath(process.cwd()), p);
+function absolutify(p, cwd) {
+  if(cwd) {
+    return path.join(cwd, p);
   } else {
     return './' + p;
   }
@@ -25,6 +25,13 @@ module.exports = function rollupPluginHypothetical(options) {
   if(impliedExtensions === undefined) {
     impliedExtensions = ['.js'];
   }
+  var cwd = options.cwd;
+  if(cwd !== false) {
+    if(cwd === undefined) {
+      cwd = process.cwd();
+    }
+    cwd = unixStylePath(cwd);
+  }
   
   var files;
   if(leaveIdsAlone) {
@@ -34,7 +41,7 @@ module.exports = function rollupPluginHypothetical(options) {
     for(var f in files0) {
       var p = path.normalize(unixStylePath(f));
       if(!isAbsolute(p)) {
-        p = absolutify(p);
+        p = absolutify(p, cwd);
       }
       files[p] = files0[f];
     }
@@ -72,7 +79,7 @@ module.exports = function rollupPluginHypothetical(options) {
         importee = path.normalize(importee);
       }
       if(!isAbsolute(importee)) {
-        importee = absolutify(importee);
+        importee = absolutify(importee, cwd);
       }
       return basicResolve(importee);
     },

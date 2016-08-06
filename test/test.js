@@ -1,4 +1,5 @@
 var rollup       = require('rollup');
+var path         = require('path');
 var hypothetical = require('..');
 
 
@@ -85,6 +86,25 @@ it("shouldn't import external modules from wonderland", function() {
       './y.js': 'object.key2 = 5;'
     } })]
   }), { key: false, key2: 5 }));
+});
+
+it("should use the cwd option when present", function() {
+  return resolve(rollup.rollup({
+    entry: './dir/x.js',
+    plugins: [hypothetical({ files: {
+      '/fake/dir/x.js': 'import \'/fake/y.js\'; object.key = false;',
+      './y.js': 'object.key2 = 5;'
+    }, cwd: '/fake/' })]
+  }), { key: false, key2: 5 });
+});
+
+it("should forgo absolute paths when options.cwd is false", function() {
+  var files = {};
+  files[path.resolve('x.js')] = 'object.key = false;';
+  return reject(rollup.rollup({
+    entry: './x.js',
+    plugins: [hypothetical({ files: files, cwd: false })]
+  }), "does not exist in the hypothetical file system");
 });
 
 it("should forbid external modules when options.allowExternalModules is false", function() {
