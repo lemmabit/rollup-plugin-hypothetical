@@ -62,35 +62,34 @@ module.exports = function rollupPluginHypothetical(options) {
       throw dneError(importee);
     }
   }
+
+  var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
+    importee = unixStylePath(importee);
+    if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
+      if(allowExternalModules) {
+        return;
+      } else {
+        throw Error("External module \""+importee+"\" is not allowed!");
+      }
+    }
+    if(!isAbsolute(importee) && importer) {
+      importee = path.join(path.dirname(importer), importee);
+    } else {
+      importee = path.normalize(importee);
+    }
+    if(!isAbsolute(importee)) {
+      importee = absolutify(importee, cwd);
+    }
+    return basicResolve(importee);
+  };
   
   return {
-    resolveId: leaveIdsAlone ? basicResolve : function(importee, importer) {
-      importee = unixStylePath(importee);
-      if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
-        if(allowExternalModules) {
-          return;
-        } else {
-          throw Error("External module \""+importee+"\" is not allowed!");
-        }
-      }
-      if(!isAbsolute(importee) && importer) {
-        importee = path.join(path.dirname(importer), importee);
-      } else {
-        importee = path.normalize(importee);
-      }
-      if(!isAbsolute(importee)) {
-        importee = absolutify(importee, cwd);
-      }
-      return basicResolve(importee);
-    },
+    resolveId: resolveId,
     load: function(id) {
-      if(!leaveIdsAlone) {
-        id = unixStylePath(id);
-      }
       if(id in files) {
         return files[id];
-      } else if(!allowRealFiles) {
-        throw dneError(id);
+      } else {
+        return files[resolveId(id)];
       }
     }
   };
