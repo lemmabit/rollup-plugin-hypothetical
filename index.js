@@ -24,6 +24,8 @@ module.exports = function rollupPluginHypothetical(options) {
   var impliedExtensions = options.impliedExtensions;
   if(impliedExtensions === undefined) {
     impliedExtensions = ['.js'];
+  } else {
+    impliedExtensions = Array.prototype.slice.call(impliedExtensions);
   }
   var cwd = options.cwd;
   if(cwd !== false) {
@@ -33,11 +35,12 @@ module.exports = function rollupPluginHypothetical(options) {
     cwd = unixStylePath(cwd);
   }
   
-  var files;
+  var files = {};
   if(leaveIdsAlone) {
-    files = files0;
+    for(var f in files0) {
+      files[f] = files0[f];
+    }
   } else {
-    files = {};
     for(var f in files0) {
       var p = path.normalize(unixStylePath(f));
       if(!isAbsolute(p)) {
