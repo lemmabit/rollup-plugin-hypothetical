@@ -152,7 +152,6 @@ it("should bypass this insufferable garbage when options.leaveIdsAlone is true",
 });
 
 it("should distinguish between / and \\ when leaving IDs alone", function() {
-  // Rollup "normalizes" entry paths, so those are a lost cause. :(
   return reject(rollup.rollup({
     entry: 'x',
     plugins: [hypothetical({ files: {
