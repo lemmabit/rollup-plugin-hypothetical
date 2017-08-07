@@ -4,6 +4,10 @@ function isAbsolute(p) {
   return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
 }
 
+function isExternal(p) {
+  return !/^(\.?\.?|[A-Za-z]:)\//.test(p);
+}
+
 function absolutify(p, cwd) {
   if(cwd) {
     return path.join(cwd, p);
@@ -43,7 +47,7 @@ module.exports = function rollupPluginHypothetical(options) {
   } else {
     for(var f in files0) {
       var p = path.normalize(unixStylePath(f));
-      if(!isAbsolute(p)) {
+      if(!isAbsolute(p) && !isExternal(f)) {
         p = absolutify(p, cwd);
       }
       files[p] = files0[f];
@@ -60,9 +64,9 @@ module.exports = function rollupPluginHypothetical(options) {
 
   var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
     importee = unixStylePath(importee);
-    if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
+    if(importer && isExternal(importee)) {
       if(allowExternalModules) {
-        return;
+        return files.hasOwnProperty(importee) ? importee : null;
       } else {
         throw Error("External module \""+importee+"\" is not allowed!");
       }

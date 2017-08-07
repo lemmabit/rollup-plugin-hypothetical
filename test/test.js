@@ -221,21 +221,21 @@ describe("Paths", function() {
   it("should handle backslash-separated paths", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\x.js',
-      plugins: [hypothetical({ files: { 'dir\\x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './dir\\x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
   it("should handle mixed slash style paths", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\this-is-horrible/x.js',
-      plugins: [hypothetical({ files: { 'dir\\this-is-horrible/x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './dir\\this-is-horrible/x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
   it("should convert between slash styles", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\x.js',
-      plugins: [hypothetical({ files: { 'dir/x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './dir/x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
@@ -270,7 +270,7 @@ describe("Paths", function() {
   it("should normalize module file paths", function() {
     return resolve(rollup.rollup({
       entry: './dir/../x.js',
-      plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
@@ -291,6 +291,16 @@ describe("Paths", function() {
         './x.lol': 'import \'./y\'; object.key = false;',
         './y.ha': 'object.key2 = 5;'
       }, impliedExtensions: ['.lol', '.ha'] })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should handle external module", function() {
+    return resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'x\'; object.key = false;',
+        'x': 'object.key2 = 5;',
+      } })]
     }), { key: false, key2: 5 });
   });
   
