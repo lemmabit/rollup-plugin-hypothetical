@@ -107,38 +107,47 @@ it("should forgo absolute paths when options.cwd is false", function() {
   }), "does not exist in the hypothetical file system");
 });
 
-it("should forbid external modules when options.allowExternalModules is false", function() {
+it("should forbid external fallthrough when options.allowExternalFallthrough is false", function() {
   return reject(rollup.rollup({
     entry: './x.js',
     plugins: [hypothetical({ files: {
       './x.js': 'import \'y.js\'; object.key = false;'
-    }, allowExternalModules: false })]
-  }), "xternal module");
+    }, allowExternalFallthrough: false })]
+  }), "does not exist in the hypothetical file system");
 });
 
-it("should allow importing of real files when options.allowRealFiles is true", function() {
+it("should allow fallthrough to real files when options.allowFallthrough is true", function() {
   return resolve(rollup.rollup({
     entry: './test/fixtures/x.js',
     plugins: [hypothetical({ files: {
       './test/fixtures/x.js': 'import \'./a.js\'; object.key2 = -3;'
-    }, allowRealFiles: true })]
+    }, allowFallthrough: true })]
   }), { key: true, key2: -3 });
 });
 
-it("should allow entry to be a real file when options.allowRealFiles is true", function() {
+it("should allow entry to fall through when options.allowFallthrough is true", function() {
   return resolve(rollup.rollup({
     entry: './test/fixtures/b.js',
     plugins: [hypothetical({ files: {
       './test/fixtures/a.js': 'object.key = false;'
-    }, allowRealFiles: true })]
+    }, allowFallthrough: true })]
   }), { key: false, key2: 0 });
 });
 
-it("should allow every file to be real when options.allowRealFiles is true", function() {
+it("should allow every file to fall through when options.allowFallthrough is true", function() {
   return resolve(rollup.rollup({
     entry: './test/fixtures/b.js',
-    plugins: [hypothetical({ allowRealFiles: true })]
+    plugins: [hypothetical({ allowFallthrough: true })]
   }), { key: true, key2: 0 });
+});
+
+it("shouldn't override options.allowExternalFallthrough when options.allowFallthrough is true", function() {
+  return reject(rollup.rollup({
+    entry: './x.js',
+    plugins: [hypothetical({ files: {
+      './x.js': 'import \'y.js\'; object.key = false;'
+    }, allowFallthrough: true, allowExternalFallthrough: false })]
+  }), "does not exist in the hypothetical file system");
 });
 
 it("should bypass this insufferable garbage when options.leaveIdsAlone is true", function() {
@@ -221,21 +230,21 @@ describe("Paths", function() {
   it("should handle backslash-separated paths", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\x.js',
-      plugins: [hypothetical({ files: { 'dir\\x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { '.\\dir\\x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
   it("should handle mixed slash style paths", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\this-is-horrible/x.js',
-      plugins: [hypothetical({ files: { 'dir\\this-is-horrible/x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './dir\\this-is-horrible/x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
   it("should convert between slash styles", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\x.js',
-      plugins: [hypothetical({ files: { 'dir/x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './dir/x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
@@ -270,7 +279,7 @@ describe("Paths", function() {
   it("should normalize module file paths", function() {
     return resolve(rollup.rollup({
       entry: './dir/../x.js',
-      plugins: [hypothetical({ files: { 'x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { './x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
@@ -284,6 +293,16 @@ describe("Paths", function() {
     }), { key: false, key2: 5 });
   });
   
+  it("should add a trailing slash if necessary by default", function() {
+    return resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x/': 'import \'./y\'; object.key = false;',
+        './y/': 'object.key2 = 5;'
+      } })]
+    }), { key: false, key2: 5 });
+  });
+  
   it("should add any extensions passed into options.impliedExtensions", function() {
     return resolve(rollup.rollup({
       entry: 'x',
@@ -292,6 +311,117 @@ describe("Paths", function() {
         './y.ha': 'object.key2 = 5;'
       }, impliedExtensions: ['.lol', '.ha'] })]
     }), { key: false, key2: 5 });
+  });
+  
+  it("should handle external paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'x\'; object.key = false;',
+        'x': 'object.key2 = 5;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should normalize external module file paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/dir/../y.js\'; object.key = false;',
+        'external/y.js': 'object.key2 = 5;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should forbid external module paths from going up more directories than they go down", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/../../y.js\';',
+      }, allowExternalFallthrough: false })]
+    })), "External import \"external/../../y.js\" normalized to \"../y.js\"!");
+  });
+  
+  it("should normalize external supplied file paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/y.js\'; object.key = false;',
+        'external/dir/../y.js': 'object.key2 = 5;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should forbid external supplied paths from going up more directories than they go down", function() {
+    try {
+      hypothetical({ files: {
+        './x.js': '',
+        'external/../../y.js': '',
+      }, allowExternalFallthrough: false });
+    } catch(e) {
+      if(e.message.indexOf("Supplied external file path \"external/../../y.js\" normalized to \"../y.js\"!") === -1) {
+        throw Error("Incorrect error message \"" + e.message + "\"!");
+      }
+      return;
+    }
+    throw Error("No error was thrown!");
+  });
+  
+  it("should add implied extensions to external module file paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external\'; object.key = false;',
+        'external.js': 'object.key2 = 5;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should add implied slashes to external module file paths", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external\'; object.key = false;',
+        'external/': 'object.key2 = 5;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5 });
+  });
+  
+  it("should handle relative imports within external modules", function() {
+    return resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/y.js\'; object.key = false;',
+        'external/y.js': 'import \'./z.js\'; object.key2 = 5;',
+        'external/z.js': 'object.key3 = 10;'
+      }, allowExternalFallthrough: false })]
+    }), { key: false, key2: 5, key3: 10 });
+  });
+  
+  it("should forbid relative imports within external modules from going up too many directories", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/y.js\';',
+        'external/y.js': 'import \'../../z.js\';'
+      }, allowExternalFallthrough: false })]
+    })), "Import \"../../z.js\" relative to external import \"external/y.js\" results in \"../z.js\"!");
+  });
+  
+  it("should handle fallthrough relative to external imports when options.allowRelativeExternalFallthrough is true...", function() {
+    return rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external/y.js\'; object.key = false;',
+        'external/y.js': 'import \'./z.js\'; object.key2 = 5;'
+      }, allowRelativeExternalFallthrough: true })],
+      external: ['external/z.js']
+    }).then(function(bundle) {
+      var code = bundle.generate().code;
+      if(code.indexOf('external/z.js') === -1) {
+        throw Error("Output code does not import external/z.js");
+      }
+    });
   });
   
   it("shouldn't add .js if it isn't in options.impliedExtensions", function() {
@@ -311,6 +441,36 @@ describe("Paths", function() {
         './x.js': 'import \'./y\'; object.key = false;',
         './y.js': 'object.key2 = 5;'
       }, impliedExtensions: false })]
+    })), "does not exist in the hypothetical file system");
+  });
+  
+  it("shouldn't add any slashes if options.impliedExtensions is false", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'./y\'; object.key = false;',
+        './y/': 'object.key2 = 5;'
+      }, impliedExtensions: false })]
+    })), "does not exist in the hypothetical file system");
+  });
+  
+  it("shouldn't add extensions to external modules if options.impliedExtensions is false", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external\'; object.key = false;',
+        'external.js': 'object.key2 = 5;'
+      }, impliedExtensions: false, allowExternalFallthrough: false })]
+    })), "does not exist in the hypothetical file system");
+  });
+  
+  it("shouldn't add slashes to external modules if options.impliedExtensions is false", function() {
+    return reject(resolve(rollup.rollup({
+      entry: 'x.js',
+      plugins: [hypothetical({ files: {
+        './x.js': 'import \'external\'; object.key = false;',
+        'external/': 'object.key2 = 5;'
+      }, impliedExtensions: false, allowExternalFallthrough: false })]
     })), "does not exist in the hypothetical file system");
   });
 });

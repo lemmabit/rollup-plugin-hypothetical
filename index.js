@@ -4,6 +4,10 @@ function isAbsolute(p) {
   return path.isAbsolute(p) || /^[A-Za-z]:\//.test(p);
 }
 
+function isExternal(p) {
+  return !/^(\.?\.?|[A-Za-z]:)\//.test(p);
+}
+
 function absolutify(p, cwd) {
   if(cwd) {
     return path.join(cwd, p);
@@ -15,15 +19,16 @@ function absolutify(p, cwd) {
 module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
   var files0 = options.files || {};
-  var allowRealFiles = options.allowRealFiles || false;
-  var allowExternalModules = options.allowExternalModules;
-  if(allowExternalModules === undefined) {
-    allowExternalModules = true;
+  var allowFallthrough = options.allowFallthrough || false;
+  var allowRelativeExternalFallthrough = options.allowRelativeExternalFallthrough || false;
+  var allowExternalFallthrough = options.allowExternalFallthrough;
+  if(allowExternalFallthrough === undefined) {
+    allowExternalFallthrough = true;
   }
   var leaveIdsAlone = options.leaveIdsAlone || false;
   var impliedExtensions = options.impliedExtensions;
   if(impliedExtensions === undefined) {
-    impliedExtensions = ['.js'];
+    impliedExtensions = ['.js', '/'];
   } else {
     impliedExtensions = Array.prototype.slice.call(impliedExtensions);
   }
@@ -42,8 +47,19 @@ module.exports = function rollupPluginHypothetical(options) {
     }
   } else {
     for(var f in files0) {
-      var p = path.normalize(unixStylePath(f));
-      if(!isAbsolute(p)) {
+      var unixStyleF = unixStylePath(f);
+      var pathIsExternal = isExternal(unixStyleF);
+      var p = path.normalize(unixStyleF);
+      if(pathIsExternal && !isExternal(p)) {
+        throw Error(
+          "Supplied external file path \"" +
+          unixStyleF +
+          "\" normalized to \"" +
+          p +
+          "\"!"
+        );
+      }
+      if(!isAbsolute(p) && !pathIsExternal) {
         p = absolutify(p, cwd);
       }
       files[p] = files0[f];
@@ -53,29 +69,60 @@ module.exports = function rollupPluginHypothetical(options) {
   function basicResolve(importee) {
     if(importee in files) {
       return importee;
-    } else if(!allowRealFiles) {
-      throw dneError(importee);
+    } else if(!allowFallthrough) {
+      throw Error(dneMessage(importee));
     }
   }
 
   var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
     importee = unixStylePath(importee);
-    if(importer && !/^(\.?\.?|[A-Za-z]:)\//.test(importee)) {
-      if(allowExternalModules) {
-        return;
+    
+    // the entry file is never external.
+    var importeeIsExternal = Boolean(importer) && isExternal(importee);
+    
+    var importeeIsRelativeToExternal =
+      importer &&
+      !importeeIsExternal &&
+      isExternal(importer) &&
+      !isAbsolute(importee);
+    
+    if(importeeIsExternal) {
+      var normalizedImportee = path.normalize(importee);
+      if(!isExternal(normalizedImportee)) {
+        throw Error(
+          "External import \"" +
+          importee +
+          "\" normalized to \"" +
+          normalizedImportee +
+          "\"!"
+        );
+      }
+      importee = normalizedImportee;
+    } else if(importeeIsRelativeToExternal) {
+      var joinedImportee = path.join(path.dirname(importer), importee);
+      if(!isExternal(joinedImportee)) {
+        throw Error(
+          "Import \"" +
+          importee +
+          "\" relative to external import \"" +
+          importer +
+          "\" results in \"" +
+          joinedImportee +
+          "\"!"
+        );
+      }
+      importee = joinedImportee;
+    } else {
+      if(!isAbsolute(importee) && importer) {
+        importee = path.join(path.dirname(importer), importee);
       } else {
-        throw Error("External module \""+importee+"\" is not allowed!");
+        importee = path.normalize(importee);
+      }
+      if(!isAbsolute(importee)) {
+        importee = absolutify(importee, cwd);
       }
     }
-    if(!isAbsolute(importee) && importer) {
-      importee = path.join(path.dirname(importer), importee);
-    } else {
-      importee = path.normalize(importee);
-    }
-    if(!isAbsolute(importee)) {
-      importee = absolutify(importee, cwd);
-    }
-
+    
     if(importee in files) {
       return importee;
     } else if(impliedExtensions) {
@@ -86,8 +133,21 @@ module.exports = function rollupPluginHypothetical(options) {
         }
       }
     }
-    if(!allowRealFiles) {
-      throw dneError(importee);
+    if(importeeIsExternal && !allowExternalFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(importeeIsRelativeToExternal && !allowRelativeExternalFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(!importeeIsExternal && !importeeIsRelativeToExternal && !allowFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(importeeIsRelativeToExternal) {
+      // we have to resolve this case specially because Rollup won't
+      // treat it as external if we don't.
+      // we have to trust that the user has informed Rollup that this import
+      // is supposed to be external... ugh.
+      return importee;
     }
   };
   
@@ -108,6 +168,6 @@ function unixStylePath(p) {
   return p.split('\\').join('/');
 }
 
-function dneError(id) {
-  return Error("\""+id+"\" does not exist in the hypothetical file system!");
+function dneMessage(id) {
+  return "\""+id+"\" does not exist in the hypothetical file system!";
 }
