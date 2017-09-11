@@ -46,8 +46,9 @@ module.exports = function rollupPluginHypothetical(options) {
     }
   } else {
     for(var f in files0) {
-      var p = path.normalize(unixStylePath(f));
-      if(!isAbsolute(p) && !isExternal(f)) {
+      var unixStyleF = unixStylePath(f);
+      var p = path.normalize(unixStyleF);
+      if(!isAbsolute(p) && !isExternal(unixStyleF)) {
         p = absolutify(p, cwd);
       }
       files[p] = files0[f];
