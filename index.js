@@ -73,7 +73,7 @@ module.exports = function rollupPluginHypothetical(options) {
       throw Error(dneMessage(importee));
     }
   }
-
+  
   var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
     importee = unixStylePath(importee);
     
