@@ -221,7 +221,7 @@ describe("Paths", function() {
   it("should handle backslash-separated paths", function() {
     return resolve(rollup.rollup({
       entry: 'dir\\x.js',
-      plugins: [hypothetical({ files: { './dir\\x.js': 'object.key = false;' } })]
+      plugins: [hypothetical({ files: { '.\\dir\\x.js': 'object.key = false;' } })]
     }), { key: false });
   });
   
