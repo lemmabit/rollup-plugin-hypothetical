@@ -19,10 +19,10 @@ function absolutify(p, cwd) {
 module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
   var files0 = options.files || {};
-  var allowRealFiles = options.allowRealFiles || false;
-  var allowExternalModules = options.allowExternalModules;
-  if(allowExternalModules === undefined) {
-    allowExternalModules = true;
+  var allowFallthrough = options.allowFallthrough || false;
+  var allowExternalFallthrough = options.allowExternalFallthrough;
+  if(allowExternalFallthrough === undefined) {
+    allowExternalFallthrough = true;
   }
   var leaveIdsAlone = options.leaveIdsAlone || false;
   var impliedExtensions = options.impliedExtensions;
@@ -58,29 +58,29 @@ module.exports = function rollupPluginHypothetical(options) {
   function basicResolve(importee) {
     if(importee in files) {
       return importee;
-    } else if(!allowRealFiles) {
+    } else if(!allowFallthrough) {
       throw dneError(importee);
     }
   }
 
   var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
     importee = unixStylePath(importee);
-    if(importer && isExternal(importee)) {
-      if(allowExternalModules) {
-        return files.hasOwnProperty(importee) ? importee : null;
+    
+    // the entry file is never external.
+    var importeeIsExternal = Boolean(importer) && isExternal(importee);
+    if(importeeIsExternal) {
+      importee = path.normalize(importee);
+    } else {
+      if(!isAbsolute(importee) && importer) {
+        importee = path.join(path.dirname(importer), importee);
       } else {
-        throw Error("External module \""+importee+"\" is not allowed!");
+        importee = path.normalize(importee);
+      }
+      if(!isAbsolute(importee)) {
+        importee = absolutify(importee, cwd);
       }
     }
-    if(!isAbsolute(importee) && importer) {
-      importee = path.join(path.dirname(importer), importee);
-    } else {
-      importee = path.normalize(importee);
-    }
-    if(!isAbsolute(importee)) {
-      importee = absolutify(importee, cwd);
-    }
-
+    
     if(importee in files) {
       return importee;
     } else if(impliedExtensions) {
@@ -91,7 +91,7 @@ module.exports = function rollupPluginHypothetical(options) {
         }
       }
     }
-    if(!allowRealFiles) {
+    if(importeeIsExternal ? !allowExternalFallthrough : !allowFallthrough) {
       throw dneError(importee);
     }
   };

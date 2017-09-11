@@ -40,11 +40,11 @@ To attach a sourcemap to a hypothetical file, simply pass in a `{ code, map }` o
 ### options.files
 An object whose keys are paths, either relative to the current working directory or absolute, and whose values are the code within the hypothetical files at those paths.
 
-### options.allowRealFiles
-Set this to `true` to allow mixing of hypothetical and actual files. "Actual" files can be files accessed by Rollup or produced by plugins further down the chain.
+### options.allowFallthrough
+Defaults to `false`. Set this to `true` to allow non-external imports to fall through. That way they can be handled either by Rollup's default behavior (reading from the filesystem) or by a plugin further down the chain if there is one.
 
-### options.allowExternalModules
-Set this to `false` to forbid importing of external modules.
+### options.allowExternalFallthrough
+Defaults to `true`. Set this to `false` to forbid external imports from falling through.
 
 ### options.leaveIdsAlone
 When this is set to `true`, the IDs in `import` statements won't be treated as paths and will instead be looked up directly in the `files` object. There will be no relative importing, path normalization, or restrictions on the contents of IDs.
