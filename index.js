@@ -20,6 +20,7 @@ module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
   var files0 = options.files || {};
   var allowFallthrough = options.allowFallthrough || false;
+  var allowRelativeExternalFallthrough = options.allowRelativeExternalFallthrough || false;
   var allowExternalFallthrough = options.allowExternalFallthrough;
   if(allowExternalFallthrough === undefined) {
     allowExternalFallthrough = true;
@@ -27,7 +28,7 @@ module.exports = function rollupPluginHypothetical(options) {
   var leaveIdsAlone = options.leaveIdsAlone || false;
   var impliedExtensions = options.impliedExtensions;
   if(impliedExtensions === undefined) {
-    impliedExtensions = ['.js'];
+    impliedExtensions = ['.js', '/'];
   } else {
     impliedExtensions = Array.prototype.slice.call(impliedExtensions);
   }
@@ -47,8 +48,18 @@ module.exports = function rollupPluginHypothetical(options) {
   } else {
     for(var f in files0) {
       var unixStyleF = unixStylePath(f);
+      var pathIsExternal = isExternal(unixStyleF);
       var p = path.normalize(unixStyleF);
-      if(!isAbsolute(p) && !isExternal(unixStyleF)) {
+      if(pathIsExternal && !isExternal(p)) {
+        throw Error(
+          "Supplied external file path \"" +
+          unixStyleF +
+          "\" normalized to \"" +
+          p +
+          "\"!"
+        );
+      }
+      if(!isAbsolute(p) && !pathIsExternal) {
         p = absolutify(p, cwd);
       }
       files[p] = files0[f];
@@ -59,7 +70,7 @@ module.exports = function rollupPluginHypothetical(options) {
     if(importee in files) {
       return importee;
     } else if(!allowFallthrough) {
-      throw dneError(importee);
+      throw Error(dneMessage(importee));
     }
   }
 
@@ -68,8 +79,39 @@ module.exports = function rollupPluginHypothetical(options) {
     
     // the entry file is never external.
     var importeeIsExternal = Boolean(importer) && isExternal(importee);
+    
+    var importeeIsRelativeToExternal =
+      importer &&
+      !importeeIsExternal &&
+      isExternal(importer) &&
+      !isAbsolute(importee);
+    
     if(importeeIsExternal) {
-      importee = path.normalize(importee);
+      var normalizedImportee = path.normalize(importee);
+      if(!isExternal(normalizedImportee)) {
+        throw Error(
+          "External import \"" +
+          importee +
+          "\" normalized to \"" +
+          normalizedImportee +
+          "\"!"
+        );
+      }
+      importee = normalizedImportee;
+    } else if(importeeIsRelativeToExternal) {
+      var joinedImportee = path.join(path.dirname(importer), importee);
+      if(!isExternal(joinedImportee)) {
+        throw Error(
+          "Import \"" +
+          importee +
+          "\" relative to external import \"" +
+          importer +
+          "\" results in \"" +
+          joinedImportee +
+          "\"!"
+        );
+      }
+      importee = joinedImportee;
     } else {
       if(!isAbsolute(importee) && importer) {
         importee = path.join(path.dirname(importer), importee);
@@ -91,8 +133,21 @@ module.exports = function rollupPluginHypothetical(options) {
         }
       }
     }
-    if(importeeIsExternal ? !allowExternalFallthrough : !allowFallthrough) {
-      throw dneError(importee);
+    if(importeeIsExternal && !allowExternalFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(importeeIsRelativeToExternal && !allowRelativeExternalFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(!importeeIsExternal && !importeeIsRelativeToExternal && !allowFallthrough) {
+      throw Error(dneMessage(importee));
+    }
+    if(importeeIsRelativeToExternal) {
+      // we have to resolve this case specially because Rollup won't
+      // treat it as external if we don't.
+      // we have to trust that the user has informed Rollup that this import
+      // is supposed to be external... ugh.
+      return importee;
     }
   };
   
@@ -113,6 +168,6 @@ function unixStylePath(p) {
   return p.split('\\').join('/');
 }
 
-function dneError(id) {
-  return Error("\""+id+"\" does not exist in the hypothetical file system!");
+function dneMessage(id) {
+  return "\""+id+"\" does not exist in the hypothetical file system!";
 }
