@@ -51,7 +51,7 @@ Defaults to `false`. Set this to `true` to allow relative imports from supplied 
 
 ```js
 {
-  'main.js': `
+  './main.js': `
     import 'external/x.js';
   `,
   'external/x.js': `
