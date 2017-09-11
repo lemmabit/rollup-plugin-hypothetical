@@ -17,15 +17,17 @@ export default {
     files: {
       './dir/a.js': `
         import foo from './b.js';
-        import 'c';
         foo();
       `,
       './dir/b.js': `
+        import message from 'external';
         export default function foo() {
-          console.log("Hello, world!");
+          console.log(message);
         }
       `,
-      'c': 'console.log("This is an external module.");'
+      'external': `
+        export default "Hello, World!";
+      `
     }
   })]
 };
