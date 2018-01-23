@@ -40,7 +40,7 @@ module.exports = function rollupPluginHypothetical(options) {
     cwd = unixStylePath(cwd);
   }
   
-  var files = {};
+  var files = Object.create(null);
   if(leaveIdsAlone) {
     for(var f in files0) {
       files[f] = files0[f];

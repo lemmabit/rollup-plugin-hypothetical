@@ -214,6 +214,24 @@ it("should re-resolve paths from other plugins", function() {
   }), { key: false });
 });
 
+it("should handle paths with names matching keys on Object.prototype", function() {
+  return reject(rollup.rollup({
+    input: 'x.js',
+    plugins: [hypothetical({ files: {
+      './x.js': 'import "hasOwnProperty";'
+    }, allowExternalFallthrough: false })]
+  }), "\"hasOwnProperty\" does not exist in the hypothetical file system");
+});
+
+it("should also do so when leaveIdsAlone is true", function() {
+  return reject(rollup.rollup({
+    input: 'x.js',
+    plugins: [hypothetical({ files: {
+      'x.js': 'import "hasOwnProperty";'
+    }, leaveIdsAlone: true })]
+  }), "\"hasOwnProperty\" does not exist in the hypothetical file system");
+});
+
 describe("Paths", function() {
   it("should handle an entry point that appears to be external", function() {
     return resolve(rollup.rollup({
