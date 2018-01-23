@@ -16,9 +16,25 @@ function absolutify(p, cwd) {
   }
 }
 
+function forEachInObjectOrMap(object, map, callback) {
+  if(object && map) {
+    throw Error("Both an Object and a Map were supplied!");
+  }
+  
+  if(map) {
+    map.forEach(callback);
+  } else if(object) {
+    for(var key in object) {
+      callback(object[key], key);
+    }
+  }
+  // if neither was supplied, do nothing.
+}
+
 module.exports = function rollupPluginHypothetical(options) {
   options = options || {};
-  var files0 = options.files || {};
+  var files0 = options.files;
+  var files0AsMap = options.filesMap;
   var allowFallthrough = options.allowFallthrough || false;
   var allowRelativeExternalFallthrough = options.allowRelativeExternalFallthrough || false;
   var allowExternalFallthrough = options.allowExternalFallthrough;
@@ -42,11 +58,11 @@ module.exports = function rollupPluginHypothetical(options) {
   
   var files = new Map();
   if(leaveIdsAlone) {
-    for(var f in files0) {
-      files.set(f, files0[f]);
-    }
+    forEachInObjectOrMap(files0, files0AsMap, function(contents, f) {
+      files.set(f, contents);
+    });
   } else {
-    for(var f in files0) {
+    forEachInObjectOrMap(files0, files0AsMap, function(contents, f) {
       var unixStyleF = unixStylePath(f);
       var pathIsExternal = isExternal(unixStyleF);
       var p = path.normalize(unixStyleF);
@@ -62,8 +78,8 @@ module.exports = function rollupPluginHypothetical(options) {
       if(!isAbsolute(p) && !pathIsExternal) {
         p = absolutify(p, cwd);
       }
-      files.set(p, files0[f]);
-    }
+      files.set(p, contents);
+    });
   }
   
   function basicResolve(importee) {
