@@ -198,6 +198,37 @@ it("shouldn't add file extensions when leaving IDs alone", function() {
   }), "\"x\" does not exist in the hypothetical file system");
 });
 
+it("should accept files as a Map via the filesMap option", function() {
+  return resolve(rollup.rollup({
+    input: './x.js',
+    plugins: [hypothetical({ filesMap: new Map([
+      ['./x.js', 'import \'./y.js\'; object.key = false;'],
+      ['./y.js', 'object.key2 = 5;']
+    ]) })]
+  }), { key: false, key2: 5 });
+});
+
+it("should throw if both files and filesMap are passed", function() {
+  try {
+    hypothetical({
+      files: {
+        './x.js': 'import \'./y.js\'; object.key = false;',
+        './y.js': 'object.key2 = 5;'
+      },
+      filesMap: new Map([
+        ['./x.js', 'import \'./y.js\'; object.key = false;'],
+        ['./y.js', 'object.key2 = 5;']
+      ])
+    });
+  } catch(e) {
+    if(e.message.indexOf("Both an Object and a Map were supplied") === -1) {
+      throw Error("Incorrect error message \"" + e.message + "\"!");
+    }
+    return;
+  }
+  throw Error("No error was thrown!");
+});
+
 it("should re-resolve paths from other plugins", function() {
   return resolve(rollup.rollup({
     input: 'not used',
@@ -230,6 +261,16 @@ it("should also do so when leaveIdsAlone is true", function() {
       'x.js': 'import "hasOwnProperty";'
     }, leaveIdsAlone: true })]
   }), "\"hasOwnProperty\" does not exist in the hypothetical file system");
+});
+
+it("should handle paths called __proto__", function() {
+  return reject(rollup.rollup({
+    input: 'x.js',
+    plugins: [hypothetical({ filesMap: new Map([
+      ['./x.js', { code: 'import "__proto__"; object.key = false;', map: { mappings: '' } }],
+      ['__proto__', { code: 'import "code"; object.key2 = 5;', map: { mappings: '' } }]
+    ]), allowExternalFallthrough: false })]
+  }), "\"code\" does not exist in the hypothetical file system");
 });
 
 describe("Paths", function() {
