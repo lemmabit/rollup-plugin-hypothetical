@@ -40,10 +40,10 @@ module.exports = function rollupPluginHypothetical(options) {
     cwd = unixStylePath(cwd);
   }
   
-  var files = Object.create(null);
+  var files = new Map();
   if(leaveIdsAlone) {
     for(var f in files0) {
-      files[f] = files0[f];
+      files.set(f, files0[f]);
     }
   } else {
     for(var f in files0) {
@@ -62,12 +62,12 @@ module.exports = function rollupPluginHypothetical(options) {
       if(!isAbsolute(p) && !pathIsExternal) {
         p = absolutify(p, cwd);
       }
-      files[p] = files0[f];
+      files.set(p, files0[f]);
     }
   }
   
   function basicResolve(importee) {
-    if(importee in files) {
+    if(files.has(importee)) {
       return importee;
     } else if(!allowFallthrough) {
       throw Error(dneMessage(importee));
@@ -123,12 +123,12 @@ module.exports = function rollupPluginHypothetical(options) {
       }
     }
     
-    if(importee in files) {
+    if(files.has(importee)) {
       return importee;
     } else if(impliedExtensions) {
       for(var i = 0, len = impliedExtensions.length; i < len; ++i) {
         var extended = importee + impliedExtensions[i];
-        if(extended in files) {
+        if(files.has(extended)) {
           return extended;
         }
       }
@@ -154,11 +154,11 @@ module.exports = function rollupPluginHypothetical(options) {
   return {
     resolveId: resolveId,
     load: function(id) {
-      if(id in files) {
-        return files[id];
+      if(files.has(id)) {
+        return files.get(id);
       } else {
         id = resolveId(id);
-        return id && files[id];
+        return id && files.get(id);
       }
     }
   };
