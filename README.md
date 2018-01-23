@@ -40,6 +40,9 @@ To attach a sourcemap to a hypothetical file, simply pass in a `{ code, map }` o
 ### options.files
 An object whose keys are paths, either relative to the current working directory or absolute, and whose values are the code within the hypothetical files at those paths.
 
+### options.filesMap
+Rather than supplying a plain object to `options.files`, you may choose to supply a `Map` to `options.filesMap`. This will allow you to do things like naming your hypothetical files `__proto__`.
+
 ### options.allowFallthrough
 Defaults to `false`. Set this to `true` to allow non-external imports to fall through. That way they can be handled either by Rollup's default behavior (reading from the filesystem) or by a plugin further down the chain if there is one.
 
