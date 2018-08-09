@@ -92,6 +92,7 @@ module.exports = function rollupPluginHypothetical(options) {
   
   var resolveId = leaveIdsAlone ? basicResolve : function(importee, importer) {
     importee = unixStylePath(importee);
+    importer = importer && unixStylePath(importer);
     
     // the entry file is never external.
     var importeeIsExternal = Boolean(importer) && isExternal(importee);
