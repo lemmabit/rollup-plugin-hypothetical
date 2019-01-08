@@ -535,4 +535,7 @@ describe("Paths", function() {
       }, impliedExtensions: false, allowExternalFallthrough: false })]
     })), "does not exist in the hypothetical file system");
   });
+
+  // @todo: we need a test for windows systems and it's importer's path
+  xit("should normalize the importer's path", function() {});
 });
