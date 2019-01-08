@@ -182,7 +182,11 @@ module.exports = function rollupPluginHypothetical(options) {
 }
 
 function unixStylePath(p) {
-  return p.split('\\').join('/');
+  if (typeof p === 'string') {
+    return p.split('\\').join('/');
+  }
+
+  return p;
 }
 
 function dneMessage(id) {
