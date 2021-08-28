@@ -326,6 +326,19 @@ describe("Paths", function() {
     }), { key: false });
   });
   
+  it("should handle backslashes in importer paths", function() {
+    return resolve(rollup.rollup({
+      input: 'entry.js',
+      plugins: [
+        hypothetical({ files: {
+          'entry.js': 'import \'C:\\\\x.js\';',
+          'C:\\x.js': 'import \'./y.js\';'
+        }, leaveIdsAlone: true, allowFallthrough: true }),
+        hypothetical({ files: { 'C:\\y.js': 'object.key = false;' } })
+      ]
+    }), { key: false });
+  });
+  
   it("should handle DOS drive names", function() {
     return resolve(rollup.rollup({
       input: 'C:\\x.js',
