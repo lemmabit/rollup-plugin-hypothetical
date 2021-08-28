@@ -3,25 +3,38 @@ var path         = require('path');
 var hypothetical = require('..');
 
 
-function resolve(promise, expected) {
+function resolve(promise) {
+  var expected = Array(arguments.length - 1);
+  for(var i = 1; i < arguments.length; ++i) {
+    expected[i - 1] = arguments[i];
+  }
+  
   return promise.then(function(bundle) {
     return bundle.generate({ format: 'es' });
   }).then(function(result) {
-    var code = result.output[0].code;
-    var object = {};
-    (new Function('object', code))(object);
-    for(var key in expected) {
-      if(!(key in object)) {
-        throw Error("Expected object to have key \""+key+"\"!");
-      }
-      var ok = JSON.stringify(object[key]), ek = JSON.stringify(expected[key]);
-      if(ok !== ek)  {
-        throw Error("Expected object."+key+" to be "+ek+", not "+ok+"!");
-      }
+    if(result.output.length !== expected.length) {
+      throw Error(
+        "Expected number of outputs to be "+expected.length +
+        ", but got "+result.output.length+"!"
+      );
     }
-    for(var key in object) {
-      if(!(key in expected)) {
-        throw Error("Didn't expect object to have key \""+key+"\"!");
+    for(var i = 0; i < expected.length; ++i) {
+      var code = result.output[i].code;
+      var object = {};
+      (new Function('object', code))(object);
+      for(var key in expected[i]) {
+        if(!(key in object)) {
+          throw Error("Expected object to have key \""+key+"\"!");
+        }
+        var ok = JSON.stringify(object[key]), ek = JSON.stringify(expected[i][key]);
+        if(ok !== ek)  {
+          throw Error("Expected object."+key+" to be "+ek+", not "+ok+"!");
+        }
+      }
+      for(var key in object) {
+        if(!(key in expected[i])) {
+          throw Error("Didn't expect object to have key \""+key+"\"!");
+        }
       }
     }
   });
@@ -50,6 +63,16 @@ it("should be able to simulate an entry file", function() {
     input: './x.js',
     plugins: [hypothetical({ files: { './x.js': 'object.key = false;' } })]
   }), { key: false });
+});
+
+it("should be able to simulate multiple entry files", function() {
+  return resolve(rollup.rollup({
+    input: ['./x.js', './y.js'],
+    plugins: [hypothetical({ files: {
+      './x.js': 'object.key = false;',
+      './y.js': 'object.key = true;'
+    } })]
+  }), { key: false }, { key: true });
 });
 
 it("should be able to simulate an imported file", function() {
