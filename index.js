@@ -168,6 +168,7 @@ module.exports = function rollupPluginHypothetical(options) {
   };
   
   return {
+    name: 'hypothetical',
     resolveId: resolveId,
     load: function(id) {
       if(files.has(id)) {
