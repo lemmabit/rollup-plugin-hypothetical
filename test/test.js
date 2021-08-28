@@ -69,10 +69,11 @@ it("should be able to simulate multiple entry files", function() {
   return resolve(rollup.rollup({
     input: ['./x.js', './y.js'],
     plugins: [hypothetical({ files: {
-      './x.js': 'object.key = false;',
-      './y.js': 'object.key = true;'
+      './x.js': 'import \'./z.js\'; object.key = false;',
+      './y.js': 'object.key = true;',
+      './z.js': 'object.key2 = 0;'
     } })]
-  }), { key: false }, { key: true });
+  }), { key: false, key2: 0 }, { key: true });
 });
 
 it("should be able to simulate an imported file", function() {
