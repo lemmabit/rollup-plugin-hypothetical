@@ -1,4 +1,4 @@
-# rollup-plugin-hypothetical [![npm][npm-image]][npm-url] [![Dependency Status][david-image]][david-url] [![Build Status][travis-image]][travis-url]
+# rollup-plugin-hypothetical [![npm][npm-image]][npm-url] [![Build Status][ghactions-image]][ghactions-url]
 This allows [Rollup] modules to import hypothetical files passed in as options to the plugin.
 
 ## Installation
@@ -79,12 +79,10 @@ When this is set to a directory name, relative file paths will be resolved relat
 MIT
 
 
-[npm-url]:    https://npmjs.org/package/rollup-plugin-hypothetical
-[david-url]:  https://david-dm.org/Permutatrix/rollup-plugin-hypothetical
-[travis-url]: https://travis-ci.org/Permutatrix/rollup-plugin-hypothetical
+[npm-url]:       https://npmjs.org/package/rollup-plugin-hypothetical
+[ghactions-url]: https://github.com/lemmabit/rollup-plugin-hypothetical/actions/workflows/node.js.yml
 
-[npm-image]:    https://img.shields.io/npm/v/rollup-plugin-hypothetical.svg
-[david-image]:  https://img.shields.io/david/Permutatrix/rollup-plugin-hypothetical/master.svg
-[travis-image]: https://img.shields.io/travis/Permutatrix/rollup-plugin-hypothetical/master.svg
+[npm-image]:       https://img.shields.io/npm/v/rollup-plugin-hypothetical.svg
+[ghactions-image]: https://github.com/lemmabit/rollup-plugin-hypothetical/actions/workflows/node.js.yml/badge.svg
 
 [Rollup]: https://www.npmjs.com/package/rollup
