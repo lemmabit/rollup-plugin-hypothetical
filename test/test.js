@@ -7,7 +7,7 @@ function resolve(promise, expected) {
   return promise.then(function(bundle) {
     return bundle.generate({ format: 'es' });
   }).then(function(result) {
-    var code = result.code;
+    var code = result.output[0].code;
     var object = {};
     (new Function('object', code))(object);
     for(var key in expected) {
@@ -311,14 +311,17 @@ describe("Paths", function() {
   
   it("should handle backslashes when another plugin resolves the ID", function() {
     return resolve(rollup.rollup({
-      input: 'C:\\dir\\x.js',
+      input: './x.js',
       plugins: [
         {
           resolveId: function(importee) {
             return importee.split('/').join('\\');
           }
         },
-        hypothetical({ files: { 'C:/dir/x.js': 'object.key = false;' } })
+        hypothetical({ files: {
+          './x.js': 'import \'C:/dir/y.js\';',
+          'C:/dir/y.js': 'object.key = false;'
+        } })
       ]
     }), { key: false });
   });
@@ -480,7 +483,7 @@ describe("Paths", function() {
     }).then(function(bundle) {
       return bundle.generate({ format: 'es' });
     }).then(function(result) {
-      if(result.code.indexOf('external/z.js') === -1) {
+      if(result.output[0].code.indexOf('external/z.js') === -1) {
         throw Error("Output code does not import external/z.js");
       }
     });
