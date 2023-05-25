@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/Permutatrix/rollup-plugin-hypothetical#readme",
   "devDependencies": {
-    "mocha": "^9.1.1",
     "rollup": "^2.56.3"
   }
 }
